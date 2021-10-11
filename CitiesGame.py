@@ -1,3 +1,5 @@
+import time
+
 class CitiesDict:
     def __init__(self):
         self.cities = {}
@@ -28,3 +30,46 @@ class CitiesDict:
             return city[-2]
         else:
             return city[-1]
+
+
+class Watch:
+    def __init__(self, players):
+        self.players = players
+        self.turn_times = []
+        self.turn = 0
+        self.start_time = 0
+
+    def next_turn(self, turn_time):
+        self.turn += 1
+        self.turn_times.append(turn_time)
+        return self.turn
+
+    def get_turn_time(self):
+        turn_time = round(time.perf_counter() - self.start_time, 1)
+        self.start_time = time.perf_counter()
+        return turn_time
+
+    def start_stopwatch(self):
+        self.start_time = time.perf_counter()
+
+    @property
+    def turn_time(self):
+        return 10 + self.turn / 10
+
+    @property
+    def average_turn_times(self):
+        sum_time = []
+        n = []
+        avg_times = []
+        for i in range(self.players):
+            sum_time.append(0)
+            n.append(0)
+        for i in range(0, len(self.turn_times)):
+            sum_time[i % self.players] += self.turn_times[i]
+            n[i % self.players] += 1
+        for i in range(0, self.players):
+            if n[i] == 0:
+                avg_times.append(0)
+            else:
+                avg_times.append(round(sum_time[i] / n[i], 1))
+        return avg_times
