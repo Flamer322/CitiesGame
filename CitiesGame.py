@@ -1,4 +1,6 @@
 import time
+from inputimeout import TimeoutOccurred, inputimeout
+
 
 class CitiesDict:
     def __init__(self):
@@ -73,3 +75,82 @@ class Watch:
             else:
                 avg_times.append(round(sum_time[i] / n[i], 1))
         return avg_times
+
+
+class Game:
+    def __init__(self, players):
+        self.dict = CitiesDict()
+        self.watch = Watch(players)
+        self.players = players
+        self.kickedPlayers = []
+        self.currentPlayer = 0
+        self.lastChar = ''
+
+    def check_turn(self, city):
+        if self.dict.is_city(city):
+            if self.lastChar == '' or self.lastChar == city[0].upper():
+                if self.dict.is_available(city):
+                    self.make_turn(city)
+                    if __name__ == '__main__':
+                        print('Принято')
+                    return 1
+                else:
+                    if __name__ == '__main__':
+                        print('Этот город уже называли')
+                    return 0
+            else:
+                if __name__ == '__main__':
+                    print('Начинается на неправильную букву')
+                return -1
+        else:
+            if __name__ == '__main__':
+                print('Это не город')
+            return -2
+
+    def make_turn(self, city):
+        self.dict.select_city(city)
+        self.lastChar = self.dict.get_next_char(city)
+        self.currentPlayer = (self.currentPlayer + 1) % self.players
+        turn_time = self.watch.get_turn_time()
+        self.watch.next_turn(turn_time)
+        return self.lastChar
+
+    def get_results(self, toPrint):
+        winner = list(set(range(self.players)) - set(self.kickedPlayers))[0] + 1
+        avg_times = self.watch.average_turn_times
+        if toPrint:
+            if self.watch.turn == 0:
+                print('Ничья')
+            else:
+                print('Победил игрок %s' % winner)
+            print('Среднее время ходов:')
+            for i in range(len(avg_times)):
+                print('  Игрок %s: %s секунд' % (i + 1, avg_times[i]))
+        return [winner, *avg_times]
+
+    def start_game(self):
+        timer = self.watch.turn_time
+        while len(self.kickedPlayers) != (self.players - 1):
+            if self.currentPlayer in self.kickedPlayers:
+                self.watch.turn_times.append(self.get_results(False)[self.currentPlayer + 1])
+                self.currentPlayer = (self.currentPlayer + 1) % self.players
+                continue
+            try:
+                answer_time = time.perf_counter()
+                city = inputimeout(prompt='Игрок %s, введите город: ' % (self.currentPlayer + 1), timeout=timer)
+                answer_time = round(time.perf_counter() - answer_time, 1)
+                timer -= answer_time
+            except TimeoutOccurred:
+                if __name__ == '__main__':
+                    print('Время вышло')
+                self.watch.turn_times.append(self.watch.turn_time)
+                self.kickedPlayers.append(self.currentPlayer)
+                self.currentPlayer = (self.currentPlayer + 1) % self.players
+                print('Игрок %s выбыл' % (self.currentPlayer + 1))
+                print()
+                continue
+            if self.check_turn(city) == 1:
+                timer = self.watch.turn_time
+            if __name__ == '__main__':
+                print()
+        self.get_results(True)
