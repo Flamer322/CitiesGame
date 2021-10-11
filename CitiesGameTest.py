@@ -1,5 +1,5 @@
 import pytest, time
-from CitiesGame import CitiesDict, Watch
+from CitiesGame import CitiesDict, Watch, Game
 
 
 @pytest.fixture
@@ -10,6 +10,11 @@ def cities_dict():
 @pytest.fixture
 def watch():
     return Watch(2)
+
+
+@pytest.fixture
+def game():
+    return Game(2)
 
 
 def test_is_city(cities_dict):
@@ -87,3 +92,49 @@ def test_average_turn_time(watch):
     assert watch.average_turn_times == [6, 6]
     watch.next_turn(8)
     assert watch.average_turn_times == [6, 7]
+
+
+def test_make_turn(game):
+    assert game.make_turn('Кабардинск') == 'К'
+    assert game.make_turn('Калуга') == 'А'
+    assert game.make_turn('Анталия') == 'Я'
+    assert game.make_turn('Якутск') == 'К'
+    assert game.make_turn('Керчь') == 'Ч'
+
+
+def test_check_turn(game):
+    assert game.check_turn('Стул') == -2
+    assert game.check_turn('Чаны') == 1
+    assert game.check_turn('Нальчик') == 1
+    assert game.check_turn('Кукла') == -2
+    assert game.check_turn('Казань') == 1
+    assert game.check_turn('нальчик') == 0
+    assert game.check_turn('Москва') == -1
+
+
+def test_current_player(game):
+    assert game.currentPlayer == 0
+    game.make_turn('Кабардинск')
+    assert game.currentPlayer == 1
+    game.make_turn('Калуга')
+    assert game.currentPlayer == 0
+    game.make_turn('Анталия')
+    assert game.currentPlayer == 1
+    game.make_turn('Якутск')
+    assert game.currentPlayer == 0
+    game.make_turn('Керчь')
+    assert game.currentPlayer == 1
+
+
+def test_get_results(game):
+    game.watch.start_stopwatch()
+    time.sleep(0.1)
+    game.make_turn('Кабардинск')
+    time.sleep(0.2)
+    game.make_turn('Калуга')
+    time.sleep(0.1)
+    game.make_turn('Анталия')
+    time.sleep(0.2)
+    game.make_turn('Якутск')
+    game.kickedPlayers.append(1)
+    assert game.get_results(False) == [1, 0.1, 0.2]
