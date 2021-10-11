@@ -154,3 +154,10 @@ class Game:
             if __name__ == '__main__':
                 print()
         self.get_results(True)
+
+
+if __name__ == '__main__':
+    players = int(input('Введите количество игроков: '))
+    game = Game(players)
+    game.start_game()
+
